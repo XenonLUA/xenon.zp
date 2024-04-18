@@ -3,9 +3,9 @@ const { createClient } = require('@supabase/supabase-js');
 const path = require('path');
 const moment = require('moment');
 
-const token = process.env.TELEGRAM_BOT_TOKEN;
-const supabaseUrl = 'https://sqgifjezpzxplyvrrtev.supabase.co'; // Ganti dengan URL proyek Anda
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxZ2lmamV6cHp4cGx5dnJydGV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTMzNDc2NzQsImV4cCI6MjAyODkyMzY3NH0.2yYEUffqta76luZ5mUF0pwgWNx3iEonvmxxr1KJge68'; // Ganti dengan kunci akses Supabase Anda
+const token = "6321646297:AAF7Fj0A3HCCJsCfp2OlsKfNkHsF5ALUKVI";
+const supabaseUrl = 'https://sqgifjezpzxplyvrrtev.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxZ2lmamV6cHp4cGx5dnJydGV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTMzNDc2NzQsImV4cCI6MjAyODkyMzY3NH0.2yYEUffqta76luZ5mUF0pwgWNx3iEonvmxxr1KJge68';
 const options = { polling: true };
 
 const bot = new TelegramBot(token, options);
