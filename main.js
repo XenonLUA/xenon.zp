@@ -4,17 +4,12 @@ const path = require('path');
 const moment = require('moment');
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseUrl = 'https://sqgifjezpzxplyvrrtev.supabase.co'; // Ganti dengan URL proyek Anda
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxZ2lmamV6cHp4cGx5dnJydGV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTMzNDc2NzQsImV4cCI6MjAyODkyMzY3NH0.2yYEUffqta76luZ5mUF0pwgWNx3iEonvmxxr1KJge68'; // Ganti dengan kunci akses Supabase Anda
 const options = { polling: true };
 
 const bot = new TelegramBot(token, options);
-const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  headers: {
-    'Authorization': `Bearer ${supabaseServiceRoleKey}`,
-  },
-});
+const supabase = createClient(supabaseUrl, supabaseKey);
 // Function untuk menangani perintah /start
 // Set commands
 const commands = [
