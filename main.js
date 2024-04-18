@@ -104,16 +104,10 @@ bot.on('message', async (msg) => {
       } else {
         bot.sendMessage(msg.chat.id, 'Format pesan salah. Pastikan Anda mengikuti format yang diberikan.');
       }
-    } else {
-      // Check if user has not been reminded before
-      if (!userStates[userId].reminderSent) {
-        bot.sendMessage(msg.chat.id, 'Terima kasih atas informasinya. Mohon balas pesan ini dengan format yang diberikan untuk melanjutkan pembayaran.');
-        // Set reminderSent to true to prevent sending the reminder again
-        userStates[userId].reminderSent = true;
-      }
     }
   }
 });
+
 
 
 
