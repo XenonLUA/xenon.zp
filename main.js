@@ -19,7 +19,7 @@ const commands = [
   { command: 'additem', description: 'Add a new item (admin only)' }
 ];
 
-// Handler untuk perintah /start
+
 bot.onText(/^\/start$/, async (msg) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
