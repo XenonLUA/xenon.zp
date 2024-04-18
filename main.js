@@ -76,9 +76,6 @@ bot.on('message', async (msg) => {
   if (userStates[userId] === "waitingPayment") {
     const text = msg.text;
 
-    // Implement logic to handle payment details (e.g., validate format, extract ID ZPT and sword name)
-    // ...
-
     // Example logic (replace with your actual validation and processing):
     if (text.startsWith('Format Zepeto:')) {
       const lines = text.split('\n');
@@ -89,11 +86,18 @@ bot.on('message', async (msg) => {
           const idZpt = idZptLine.split(':')[1].trim();
           const swordName = swordNameLine.split(':')[1].trim();
 
-          // Process extracted ID ZPT and sword name (e.g., confirm payment, update order status)
-          // ...
-
-          bot.sendMessage(msg.chat.id, 'Terima kasih telah mengirimkan detail pembayaran. Kami akan segera memproses pesanan Anda.');
-          userStates[userId] = null; // Clear user state after successful processing
+          // Implement logic to handle payment details (e.g., validate format, extract ID ZPT and sword name)
+          confirmPayment(idZpt, swordName)
+            .then(() => {
+              // If payment is successfully confirmed and order status is updated
+              bot.sendMessage(msg.chat.id, 'Pembayaran berhasil dikonfirmasi. Status pesanan Anda telah diperbarui.');
+              userStates[userId] = null; // Clear user state after successful processing
+            })
+            .catch((error) => {
+              // If an error occurs while confirming payment or updating order status
+              console.error('Error confirming payment:', error);
+              bot.sendMessage(msg.chat.id, 'Maaf, terjadi kesalahan saat memproses pembayaran Anda. Silakan coba lagi nanti.');
+            });
         } else {
           bot.sendMessage(msg.chat.id, 'Format pesan salah. Pastikan Anda mengikuti format yang diberikan.');
         }
@@ -110,6 +114,7 @@ bot.on('message', async (msg) => {
     }
   }
 });
+
 
 
 // Handler untuk menangani pesan dari pengguna yang sedang menunggu detail pembayaran
