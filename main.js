@@ -1,11 +1,11 @@
-  const TelegramBot = require('node-telegram-bot-api');
+const TelegramBot = require('node-telegram-bot-api');
 const { createClient } = require('@supabase/supabase-js');
 const path = require('path');
 const moment = require('moment');
 
-const token = process.env.TELEGRAM_BOT_TOKEN;
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_ANON_KEY;
+const token = "6784235525:AAHu4VtmP-FhagO5pbaVJ_VeQn29lvoiHvg";
+const supabaseUrl = 'https://sqgifjezpzxplyvrrtev.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxZ2lmamV6cHp4cGx5dnJydGV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTMzNDc2NzQsImV4cCI6MjAyODkyMzY3NH0.2yYEUffqta76luZ5mUF0pwgWNx3iEonvmxxr1KJge68';
 const options = { polling: true };
 
 const bot = new TelegramBot(token, options);
@@ -15,11 +15,33 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const commands = [
   { command: 'start', description: 'Greets the user' },
   { command: 'listitem', description: 'Displays available item and their prices' },
-  { command: 'pembayaran', description: 'Via Dana' },
-  { command: 'additem', description: 'Add a new item (admin only)' }
+  { command: 'pembayaran', description: 'PEMBAYARAN' },
+  { command: 'additem', description: 'Add a new item (admin only)' },
+  { command: 'coin', description: 'COIN ZEPETOBOT' }
 ];
 
 
+async function deletePaymentDetails() {
+  try {
+    const { error } = await supabase
+      .from('payment_details')
+      .delete()
+      .eq('some_column', 'someValue');
+    
+    if (error) {
+      console.error('Error deleting payment details:', error.message);
+      // Handle error jika terjadi
+    } else {
+      console.log('Payment details deleted successfully.');
+      // Tindakan setelah penghapusan berhasil
+    }
+  } catch (error) {
+    console.error('Error deleting payment details:', error.message);
+    // Handle error jika terjadi
+  }
+}
+
+// Handler untuk perintah /start
 bot.onText(/^\/start$/, async (msg) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
@@ -41,143 +63,180 @@ Format Zepeto:
 SALIN DI BAWAH INI DENGAN BENAR
 
   ID ZPT: [Masukkan ID ZPT Anda di sini]
-  Nama Sword: [Nama sword yang anda order]
+  Nama item: [Nama item yang anda order]
 `;
 
 
 let waitingForPaymentDetails = {};
+let userStates = {};
 
-// Handler untuk command /pembayaran
-let userStates = {}; // Inisialisasi userStates
-
-// Handler untuk command /pembayaran
+// Menangani perintah '/pembayaran'
+// Fungsi untuk menangani pesan /pembayaran
 bot.onText(/^\/pembayaran$/, (msg) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
 
-  // Simpan status pengguna sebagai "waitingPayment"
   userStates[userId] = "waitingPayment";
 
-  // Prompt the user to continue with the payment
-  bot.sendMessage(chatId, "Silahkan lanjutkan pembayaran ke @Dakzy4u.");
-
-  // Prompt the user to send the payment details
-  const promptMessage = `
-Silahkan balas pesan ini setelah melakukan pembayaran dan balas pesan ini dengan format: ${zepetoFormatTable}`;
-  bot.sendMessage(chatId, promptMessage);
+  bot.sendMessage(chatId, "Silahkan lanjutkan pembayaran ke @Dakzy4uPayment\n\nLalu kirimkan screenshot Anda kesini")
+    .catch((error) => {
+      if (error && error.message) {
+        console.error("Error sending message to user:", error.message);
+      } else {
+        console.error("Error object is undefined or does not have 'message' property.");
+      }
+    });
 });
 
-// Handler untuk menangani pesan dari pengguna yang sedang menunggu detail pembayaran
-// Handler untuk pesan dari pengguna yang sedang menunggu detail pembayaran
-bot.on('message', async (msg) => {
+// Menangani pengiriman foto dari pengguna
+bot.on('photo', async (msg) => {
   const userId = msg.from.id;
+  const chatId = msg.chat.id;
+  const photo = msg.photo[0].file_id;
 
-  // Check if the user is waiting for payment details
-  if (userStates[userId] === "waitingPayment") {
-    const text = msg.text;
-
-    // Example logic (replace with your actual validation and processing):
-    if (text.startsWith('Format Zepeto:')) {
-      const lines = text.split('\n');
-      if (lines.length >= 4) {
-        const idZptLine = lines.find(line => line.startsWith('ID ZPT:'));
-        const swordNameLine = lines.find(line => line.startsWith('Nama Sword:'));
-        if (idZptLine && swordNameLine) {
-          const idZpt = idZptLine.split(':')[1].trim();
-          const swordName = swordNameLine.split(':')[1].trim();
-
-          // Implement logic to handle payment details (e.g., validate format, extract ID ZPT and sword name)
-          confirmPayment(idZpt, swordName)
-            .then(() => {
-              // If payment is successfully confirmed and order status is updated
-              bot.sendMessage(msg.chat.id, 'Pembayaran berhasil dikonfirmasi. Status pesanan Anda telah diperbarui.');
-              userStates[userId] = null; // Clear user state after successful processing
-            })
-            .catch((error) => {
-              // If an error occurs while confirming payment or updating order status
-              console.error('Error confirming payment:', error);
-              bot.sendMessage(msg.chat.id, 'Maaf, terjadi kesalahan saat memproses pembayaran Anda. Silakan coba lagi nanti.');
-            });
-        } else {
-          bot.sendMessage(msg.chat.id, 'Format pesan salah. Pastikan Anda mengikuti format yang diberikan.');
-        }
+  // Kirim foto ke admin
+  bot.sendPhoto(adminChatId, photo)
+    .then(() => {
+      // Beri tahu pengguna bahwa foto telah berhasil diteruskan ke admin
+      bot.sendMessage(chatId, "Screenshot pembayaran Anda telah berhasil diteruskan ke admin.")
+        .catch((error) => {
+          if (error && error.message) {
+            console.error("Error sending message to user:", error.message);
+          } else {
+            console.error("Error object is undefined or does not have 'message' property.");
+          }
+        });
+    })
+    .catch((error) => {
+      if (error && error.message) {
+        console.error("Error forwarding photo to admin:", error.message);
       } else {
-        bot.sendMessage(msg.chat.id, 'Format pesan salah. Pastikan Anda mengikuti format yang diberikan.');
+        console.error("Error object is undefined or does not have 'message' property.");
       }
-    }
+      // Beri tahu pengguna jika terjadi kesalahan saat meneruskan foto ke admin
+      bot.sendMessage(chatId, "Maaf, terjadi kesalahan dalam meneruskan screenshot pembayaran ke admin.")
+        .catch((error) => {
+          if (error && error.message) {
+            console.error("Error sending error message to user:", error.message);
+          } else {
+            console.error("Error object is undefined or does not have 'message' property.");
+          }
+        });
+    });
+});
+
+// Menangani kesalahan secara umum
+bot.on('polling_error', (error) => {
+  console.error("Polling error:", error.message);
+});
+
+// Menangani kesalahan yang tidak tertangkap
+process.on('uncaughtException', (error) => {
+  console.error("Uncaught exception:", error.message);
+});
+
+// Menangani penanganan proses yang berhenti
+process.on('unhandledRejection', (error) => {
+  console.error("Unhandled rejection:", error.message);
+});
+
+// Tangani penanganan proses yang berhenti secara tiba-tiba
+process.on('SIGINT', () => {
+  console.log("Bot berhenti berjalan.");
+  process.exit(1);
+});
+
+
+// Bot mendengarkan perintah "/diterima"
+bot.onText(/^\/diterima$/, async (msg) => {
+  const userId = msg.from.id;
+  const chatId = msg.chat.id;
+
+  // Memeriksa apakah pengguna adalah admin
+  if (isAdmin(userId)) {
+    // Mengirim pesan meminta nama userid
+    await bot.sendMessage(userId, 'Silakan masukkan id user.');
+
+    // Menunggu pesan balasan dari admin dengan id user
+    bot.once('message', async (msg) => {
+      const userId = msg.text; // Mendapatkan id user dari pesan admin
+
+      // Mengirim pesan permintaan format kepada pengguna
+      const promptMessage = `Lanjutkan dengan format: 
+Format Zepeto:
+
+SALIN DI BAWAH INI DENGAN BENAR
+
+  ID ZPT: [Masukkan ID ZPT Anda di sini]
+  Nama item: [Nama item yang anda order]`;
+      bot.sendMessage(userId, promptMessage);
+
+      // Menetapkan pengguna ke mode pembayaran
+      userStates[userId] = "waitingPayment:" + userId; // Menambahkan id user sebagai bagian dari status
+    });
   }
 });
 
-
-
-
-// Handler untuk menangani pesan dari pengguna yang sedang menunggu detail pembayaran
-let lastPaymentErrorMessageChatId = null; // Mendefinisikan variabel lastPaymentErrorMessageChatId
-
-// Handler untuk menangani pesan dari pengguna yang sedang menunggu detail pembayaran
+// Bot mendengarkan pesan
 bot.on('message', async (msg) => {
-  const chatId = msg.chat.id;
   const userId = msg.from.id;
-  const username = msg.from.username; // Menyimpan username pengguna
+  const chatId = msg.chat.id;
   const text = msg.text;
-  const timestamp = new Date().toISOString(); // Mendapatkan timestamp dalam format ISO
+  const username = msg.from.username || 'default_username';
 
-  // Check if the user is waiting for payment details
-  if (waitingForPaymentDetails[userId]) {
-    // Extract payment details from the user's reply
-    const zptMatch = text.match(/ID ZPT: ([\w\d.-]+)\n?/); // Updated regular expression for ZPT ID
-    const swordsMatch = text.match(/Nama Sword: ([\w\d\s,.-]+)/); // Updated regular expression for swords name
+  // Memeriksa apakah pengguna sedang menunggu pembayaran
+  if (userStates[userId] && userStates[userId].startsWith("waitingPayment")) { // Memeriksa apakah status mengandung "waitingPayment" dan id user
+    const waitingUserId = userStates[userId].split(":")[1]; // Mendapatkan id user dari status
 
-    if (zptMatch && swordsMatch) {
+    // Menyamakan pola untuk ID ZPT dan nama item
+    const zptMatch = text.match(/ID ZPT: ([\w\d.-]+)\n?/);
+    const itemsMatch = text.match(/Nama item: ([\w\d\s,.-]+)/);
+
+    // Memeriksa apakah format cocok
+    if (zptMatch && itemsMatch) {
       const zptId = zptMatch[1].trim();
-      const swordsNames = swordsMatch[1].trim().split(',').map(sword => sword.trim()); // Split swords by comma and trim whitespace
+      const itemsNames = itemsMatch[1].trim().split(',').map(item => item.trim());
 
-      // Validate payment details
-      if (!zptId || !swordsNames.length) {
-        // Send error message only if it's a new chat or the previous error message was sent to a different chat
-        if (chatId !== lastPaymentErrorMessageChatId) {
-          bot.sendMessage(chatId, "Format yang Anda masukkan tidak sesuai. Silahkan balas pesan ini dengan format yang benar. example: \n\nID ZPT: Masukan ID zpt mu dengan benar\nNama Sword: japan sword, royal blade");
-          lastPaymentErrorMessageChatId = chatId;
-        }
+      // Memeriksa apakah data valid
+      if (!zptId || !itemsNames.length) {
+        // Mengirim pesan jika format tidak sesuai
+        await bot.sendMessage(chatId, "Format yang Anda masukkan tidak sesuai. Silahkan balas pesan ini dengan format yang benar. Contoh: \n\nID ZPT: Masukan ID zpt mu dengan benar\nNama item: japan item, royal blade");
         return;
       }
 
-      // Prepare data for each sword
+      // Data pembayaran yang akan disimpan
       const dataToSave = {
         user_id: userId,
-        username: username, // Menambah username pengguna ke dalam data
         zpt_id: zptId,
-        swords_name: swordsNames.join(', '), // Gabungkan nama-nama sword menjadi satu string dengan koma
-        timestamp: timestamp
+        item: itemsNames.join(', '), 
+        username: username,
+        timestamp: new Date().toISOString(),
+        terkirim: 'belum dikirim'
       };
 
       try {
-        // Insert data into Supabase table
+        // Menyimpan detail pembayaran ke database
         const { data, error } = await supabase.from('payment_details').insert(dataToSave);
         if (error) {
           console.error("Error saving payment details to Supabase:", error.message);
           bot.sendMessage(chatId, "Maaf, terjadi kesalahan dalam menyimpan detail pembayaran.");
         } else {
-          // Send confirmation message
-          bot.sendMessage(chatId, "Detail pembayaran berhasil disimpan. Pembelian Anda sedang diproses dan akan di kirim dalam waktu 1x24 jam. Anda akan menerima pemberitahuan setelah proses pengiriman selesai.");
+          bot.sendMessage(chatId, "Detail pembayaran berhasil disimpan. Pembelian Anda sedang diproses dan akan dikirim dalam waktu 1x24 jam. Anda akan menerima pemberitahuan setelah proses pengiriman selesai.");
         }
       } catch (error) {
         console.error("Error saving payment details to Supabase:", error.message);
         bot.sendMessage(chatId, "Maaf, terjadi kesalahan dalam menyimpan detail pembayaran.");
       }
 
-      // Clear user state and remove from waiting list
-      delete waitingForPaymentDetails[userId];
-      lastPaymentErrorMessageChatId = null; // Reset error message chat ID
+      // Menghapus status pengguna setelah pemrosesan berhasil
+      delete userStates[waitingUserId]; // Menghapus status menggunakan id user yang sedang menunggu
     } else {
-      // Send error message only if it's a new chat or the previous error message was sent to a different chat
-      if (chatId !== lastPaymentErrorMessageChatId) {
-        bot.sendMessage(chatId, "Format yang Anda masukkan tidak sesuai. Silahkan balas pesan ini dengan format yang benar. example: \n\nID ZPT: Masukan ID zpt mu dengan benar\nNama Sword: japan sword, royal blade");
-        lastPaymentErrorMessageChatId = chatId;
-      }
+      // Mengirim pesan jika format tidak sesuai
+      bot.sendMessage(chatId, "Format yang Anda masukkan tidak sesuai. Silahkan balas pesan ini dengan format yang benar. Contoh: \n\nID ZPT: Masukan ID zpt mu dengan benar\nNama item: japan item, royal blade");
     }
   }
 });
+
 
 //list admin commands
 // /additem  // kirimpesan
@@ -215,7 +274,7 @@ bot.onText(/^\/kirimpesan$/, (msg) => {
       });
     });
   } else {
-    bot.sendMessage(chatId, "Anda tidak memiliki izin untuk menggunakan perintah ini.");
+    bot.sendMessage(chatId, "You do not have permission to use this command.");
   }
 });
 
@@ -229,14 +288,13 @@ bot.on('message', (msg) => {
   // Check if the user has sent a message before
   if (userSpamCooldown[userId] && currentTime - userSpamCooldown[userId] < 3000) {
     // If yes, inform the user not to spam
-    bot.sendMessage(userId, "Tunggu sebentar sebelum mengirim pesan berikutnya.");
+    bot.sendMessage(userId, "Please wait a moment before sending the next message.");
     return;
   }
 
   // Store the last message timestamp of the user
   userSpamCooldown[userId] = currentTime;
 
-  // Process the user's message here
 });
 
 bot.setMyCommands(commands)
@@ -259,17 +317,17 @@ bot.on("message", (msg) => {
     const currentTime = moment().format("HH:mm:ss"); // Format time using moment
     
     // Prepare the message content with user's username, timestamp, and text
-    const messageContent = `Pesan dari pengguna (ID: ${msg.from.id}, Username: ${msg.from.username}, Jam: ${currentTime}):\n${msg.text}`;
+    const messageContent = `Message from user: \nID: ${msg.from.id}, \nUsername: ${msg.from.username}, \nTime: ${currentTime}\nMessages: ${msg.text}`;
     
     // Forward the message to the admin
     bot.sendMessage(adminChatId, messageContent);
 
     // Log the user format and message
-    console.log("Pesan dari pengguna:");
-    console.log("ID Pengguna:", msg.from.id);
-    console.log("Username Pengguna:", msg.from.username);
-    console.log("Waktu:", currentTime);
-    console.log("Isi Pesan:", msg.text);
+    console.log("Message from user:");
+    console.log("User ID:", msg.from.id);
+    console.log("Username:", msg.from.username);
+    console.log("Time:", currentTime);
+    console.log("Message Content:", msg.text);
   }
 });
 
@@ -280,7 +338,7 @@ bot.onText(/^\/additem$/, async (msg) => {
 
   // Periksa apakah pengguna adalah admin
   if (isAdmin(userId)) {
-    const response = "Silahkan masukkan detail item (nama, harga)";
+    const response = "Please enter the item details (name, price)";
     bot.sendMessage(chatId, response);
 
     // Mendengarkan pesan dari pengguna untuk mendapatkan detail item
@@ -297,13 +355,13 @@ bot.onText(/^\/additem$/, async (msg) => {
               .insert([{ name, price }]);
             if (error) {
               console.error("Error adding item to Supabase:", error.message);
-              bot.sendMessage(chatId, "Maaf, terjadi kesalahan dalam menambahkan item.");
+              bot.sendMessage(chatId, "Maaf, terjadi kesalahan saat menambahkan item.");
             } else {
-              bot.sendMessage(chatId, "Item berhasil ditambahkan.");
+              bot.sendMessage(chatId, "Item added successfully.");
             }
           } catch (error) {
             console.error("Error adding item to Supabase:", error.message);
-            bot.sendMessage(chatId, "Maaf, terjadi kesalahan dalam menambahkan item.");
+            bot.sendMessage(chatId, "Maaf, terjadi kesalahan saat menambahkan item.");
           }
 
           // Hentikan mendengarkan pesan setelah menerima satu
@@ -322,13 +380,13 @@ bot.onText(/^\/additem$/, async (msg) => {
       bot.removeListener("message", messageListener);
     }, 60000); // 1 menit dalam milidetik
   } else {
-    const response = "Anda tidak memiliki izin untuk menambahkan item baru.";
-    bot.sendMessage(chatId, response); // Kirim respon ke pengguna non-admin
+    const response = "You do not have permission to add a new item.";
+    bot.sendMessage(chatId, response);
   }
 });
 
 
-// Function to handle /sword command
+// Function to handle /item command
 bot.onText(/^\/listitem$/, async (msg) => {
   const chatId = msg.chat.id;
 
@@ -355,4 +413,90 @@ bot.onText(/^\/listitem$/, async (msg) => {
   }
 });
 
+
+// Memperbarui handler untuk perintah /terkirim
+bot.onText(/^\/terkirim$/, async (msg) => {
+  const userId = msg.from.id;
+
+  // Memeriksa apakah pengguna adalah admin
+  if (isAdmin(userId)) {
+    // Mengirim pesan meminta nama item yang pesannya sudah dikirim
+    await bot.sendMessage(userId, 'Silakan masukkan nama barang yang pesanannya telah dikirim.');
+
+    // Menunggu pesan balasan dari admin dengan nama item
+    bot.once('message', async (msg) => {
+      const adminId = msg.from.id;
+      const itemName = msg.text;
+
+      try {
+        const { data: orderData, error: orderError } = await supabase
+          .from('payment_details')
+          .select('*')
+          .eq('terkirim', 'belum dikirim')
+          .eq('item', itemName);
+
+        if (orderError) {
+          throw new Error(orderError.message);
+        }
+
+        if (!orderData || orderData.length === 0) {
+          await bot.sendMessage(adminId, `No orders for the item ${itemName}.`);
+          return;
+        }
+
+        await bot.sendMessage(adminId, `Pesanan untuk item ${itemName} telah dikirim.`);
+
+        // Memperbarui status pengiriman pesanan di Supabase
+        for (const order of orderData) {
+          await supabase
+            .from('payment_details')
+            .update({ terkirim: 'sudah dikirim' }) // Update kolom terkirim menjadi 'sudah dikirim'
+            .eq('id', order.id); // Filter pesanan berdasarkan ID
+        }
+
+        // Beri tahu pengguna bahwa pesanannya berhasil dikirim
+        for (const order of orderData) {
+          await bot.sendMessage(order.user_id, `Pesanan Anda untuk item ${itemName} sudah kami kirim.`);
+        }
+
+      } catch (error) {
+        console.error('Error updating delivery status in Supabase:', error.message);
+        await bot.sendMessage(adminId, 'Terjadi kesalahan saat memperbarui status pengiriman pesanan di Supabase.');
+      }
+    });
+  } else {
+    // Jika bukan admin, kirim pesan bahwa pengguna tidak memiliki izin
+    await bot.sendMessage(userId, 'You do not have permission to use this command.');
+  }
+});
+
+bot.onText(/^\/coin$/, async (msg) => {
+  const chatId = msg.chat.id;
+
+  try {
+    const { data, error } = await supabase.from('coin').select('*');
+    if (error) {
+      console.error("Error retrieving data from Supabase:", error.message);
+      bot.sendMessage(chatId, "Maaf, terjadi kesalahan dalam mengambil data.");
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      bot.sendMessage(chatId, "Belum ada coin tersedia. Silahkan tunggu admin menambahkannya.");
+      return;
+    }
+
+    data.forEach(async (row) => {
+      const message = `Harga: ${row.harga}\nKoin Tersedia: ${row.koin_tersedia}`;
+      bot.sendMessage(chatId, message);
+    });
+  } catch (error) {
+    console.error("Error retrieving data from Supabase:", error.message);
+    bot.sendMessage(chatId, "Maaf, terjadi kesalahan dalam mengambil data.");
+  }
+});
+
+
+
+deletePaymentDetails();
 console.log("Bot is running. Send a message to start!");
