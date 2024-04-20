@@ -1,0 +1,17 @@
+{
+  "files": {
+    "main.css": "/static/css/main.de9fb30c.css",
+    "main.js": "/static/js/main.69a9ee9a.js",
+    "static/media/pizza.png": "/static/media/pizza.b1c45bf6e547d797bb5e.png",
+    "static/media/coca.png": "/static/media/coca.7da760a957ab69f6e20b.png",
+    "static/media/burger.png": "/static/media/burger.172fa9f6541ed8ef2dc1.png",
+    "static/media/axios.cjs": "/static/media/axios.08084761ac24f0b1cf02.cjs",
+    "index.html": "/index.html",
+    "main.de9fb30c.css.map": "/static/css/main.de9fb30c.css.map",
+    "main.69a9ee9a.js.map": "/static/js/main.69a9ee9a.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.de9fb30c.css",
+    "static/js/main.69a9ee9a.js"
+  ]
+}
