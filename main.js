@@ -15,7 +15,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const commands = [
   { command: 'start', description: 'Greets the user' },
   { command: 'listitem', description: 'Displays available item and their prices' },
-  { command: 'pembayaran', description: 'PEMBAYARAN' },
+  { command: 'pembayaran', description: 'Pembayaran' },
   { command: 'additem', description: 'Add a new item (admin only)' },
   { command: 'coin', description: 'COIN ZEPETOBOT' }
 ];
