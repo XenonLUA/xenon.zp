@@ -15,7 +15,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const commands = [
   { command: 'start', description: 'Greets the user' },
   { command: 'listitem', description: 'Displays available item and their prices' },
-  { command: 'pembayaran', description: 'PEMBAYARAN' },
+  { command: 'pembayaran', description: 'Pembayaran' },
   { command: 'additem', description: 'Add a new item (admin only)' },
   { command: 'coin', description: 'COIN ZEPETOBOT' }
 ];
@@ -199,8 +199,6 @@ bot.on('message', async (msg) => {
 
       // Memeriksa apakah data valid
       if (!zptId || !itemsNames.length) {
-        // Mengirim pesan jika format tidak sesuai
-        await bot.sendMessage(chatId, "Format yang Anda masukkan tidak sesuai. Silahkan balas pesan ini dengan format yang benar. Contoh: \n\nID ZPT: Masukan ID zpt mu dengan benar\nNama item: japan item, royal blade");
         return;
       }
 
