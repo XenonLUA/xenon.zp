@@ -229,12 +229,9 @@ bot.on('message', async (msg) => {
       // Menghapus status pengguna setelah pemrosesan berhasil
       delete userStates[waitingUserId]; // Menghapus status menggunakan id user yang sedang menunggu
     } else {
-      // Mengirim pesan jika format tidak sesuai
-      await bot.sendMessage(chatId, "Format yang Anda masukkan tidak sesuai. Silahkan balas pesan ini dengan format yang benar. Contoh: \n\nID ZPT: Masukan ID zpt mu dengan benar\nNama item: japan item, royal blade");
     }
   }
 });
-
 
 //list admin commands
 // /additem  // kirimpesan
