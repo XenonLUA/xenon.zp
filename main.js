@@ -399,7 +399,7 @@ bot.onText(/^\/listitem$/, async (msg) => {
     }
 
     data.forEach(async (item) => {
-      const itemMessage = `${item.name}\nHarga: ${item.price}`;
+      const itemMessage = `${item.name}\nHarga: ${item.price}\n${item.photopath}pict: `;
       bot.sendMessage(chatId, itemMessage);
     });
   } catch (error) {
